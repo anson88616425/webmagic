@@ -1,5 +1,6 @@
 package us.codecraft.webmagic.downloader;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,8 +19,10 @@ import us.codecraft.webmagic.utils.CharsetUtils;
 import us.codecraft.webmagic.utils.HttpClientUtils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -70,7 +73,7 @@ public class HttpClientDownloader extends AbstractDownloader {
     }
 
     @Override
-    public Page download(Request request, Task task) {
+    public Page download(Request request, Task task) throws Exception {
         if (task == null || task.getSite() == null) {
             throw new NullPointerException("task or site can not be null");
         }
@@ -83,12 +86,14 @@ public class HttpClientDownloader extends AbstractDownloader {
             httpResponse = httpClient.execute(requestContext.getHttpUriRequest(), requestContext.getHttpClientContext());
             page = handleResponse(request, request.getCharset() != null ? request.getCharset() : task.getSite().getCharset(), httpResponse, task);
             onSuccess(request);
-            logger.info("downloading page success {}", request.getUrl());
+            logger.info("downloading page success {},statusCode {}", request.getUrl(),page.getStatusCode());
             return page;
         } catch (IOException e) {
+
             logger.warn("download page {} error", request.getUrl(), e);
             onError(request);
-            return page;
+            throw e;
+           // return page;
         } finally {
             if (httpResponse != null) {
                 //ensure the connection is released back to pool

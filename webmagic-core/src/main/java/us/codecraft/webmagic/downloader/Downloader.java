@@ -21,7 +21,7 @@ public interface Downloader {
      * @param task task
      * @return page
      */
-    public Page download(Request request, Task task);
+    public Page download(Request request, Task task) throws Exception;
 
     /**
      * Tell the downloader how many threads the spider used.

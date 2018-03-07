@@ -32,7 +32,6 @@ public class OschinaBlog{
                 ,new PageModelPipeline() {
             @Override
             public void process(Object o, Task task) {
-
             }
         }, OschinaBlog.class).thread(10).addUrl("http://my.oschina.net/flashsword/blog").run();
     }

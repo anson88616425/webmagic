@@ -4,6 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import us.codecraft.webmagic.clawler.YelpProcessor;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
 import us.codecraft.webmagic.pipeline.CollectorPipeline;
@@ -11,6 +12,8 @@ import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.pipeline.Pipeline;
 import us.codecraft.webmagic.pipeline.ResultItemsCollectorPipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
+import us.codecraft.webmagic.proxy.Proxy;
+import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 import us.codecraft.webmagic.scheduler.QueueScheduler;
 import us.codecraft.webmagic.scheduler.Scheduler;
 import us.codecraft.webmagic.thread.CountableThreadPool;
@@ -329,7 +332,7 @@ public class Spider implements Runnable, Task {
                     }
                 });
             }
-        }
+        }//Read timed out,
         stat.set(STAT_STOPPED);
         // release some resources
         if (destroyWhenExit) {
@@ -401,12 +404,28 @@ public class Spider implements Runnable, Task {
     }
 
     private void processRequest(Request request) {
-        Page page = downloader.download(request, this);
+        Page page=sendRequest(request);
         if (page.isDownloadSuccess()){
             onDownloadSuccess(request, page);
         } else {
             onDownloaderFail(request);
         }
+    }
+
+    public Page sendRequest(Request request) {
+        String[] ips= YelpProcessor.getRadomIp();
+        HttpClientDownloader httpClientDownloader=(HttpClientDownloader)downloader;
+        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy(ips[0],Integer.parseInt(ips[1]),"edazonetime","Eda88888888")));
+        Page page = null;
+        try {
+            page = httpClientDownloader.download(request, this);
+        } catch (Exception e) {
+            return sendRequest(request);
+        }
+        if(page.getStatusCode()==503) {
+            return sendRequest(request);
+        }
+        return page;
     }
 
     private void onDownloadSuccess(Request request, Page page) {

@@ -56,7 +56,11 @@ public class HttpClientDownloaderTest {
         HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
         Task task = Site.me().setDomain("localhost").setCycleRetryTimes(5).toTask();
         Request request = new Request(PAGE_ALWAYS_NOT_EXISTS);
-        Page page = httpClientDownloader.download(request, task);
+        Page page = null;
+        try {
+            page = httpClientDownloader.download(request, task);
+        } catch (Exception e) {
+        }
         assertThat(page.isDownloadSuccess()).isFalse();
     }
 
